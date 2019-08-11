@@ -148,7 +148,22 @@ final class CaptureSessionManager: NSObject, AVCaptureVideoDataOutputSampleBuffe
             delegate?.captureSessionManager(self, didFailWithError: error)
             return
         }
-        CaptureSession.current.setImageOrientation()
+        
+        switch UIApplication.shared.statusBarOrientation {
+        case .portrait:
+            connection.videoOrientation = AVCaptureVideoOrientation.portrait
+        case .portraitUpsideDown:
+            connection.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
+        case .landscapeLeft:
+            connection.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+        case .landscapeRight:
+            connection.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
+        case .unknown:
+            break
+        default:
+            break
+        }
+
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.isHighResolutionPhotoEnabled = true
         photoSettings.isAutoStillImageStabilizationEnabled = true

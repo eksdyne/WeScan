@@ -106,6 +106,9 @@ final class HomeViewController: UIViewController {
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+
+        actionSheet.popoverPresentationController?.sourceRect = sender.bounds
+        actionSheet.popoverPresentationController?.sourceView = sender
         
         actionSheet.addAction(scanAction)
         actionSheet.addAction(selectAction)
