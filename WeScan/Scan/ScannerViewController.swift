@@ -20,10 +20,7 @@ final class ScannerViewController: UIViewController {
     
     /// The view that draws the detected rectangles.
     private let quadView = QuadrilateralView()
-    
-    /// The visual effect (blur) view used on the navigation bar
-    private let visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
-    
+        
     /// Whether flash is enabled
     private var flashEnabled = false
     
@@ -95,11 +92,6 @@ final class ScannerViewController: UIViewController {
         quadView.removeQuadrilateral()
         captureSessionManager?.start()
         UIApplication.shared.isIdleTimerDisabled = true
-
-        navigationController?.navigationBar.isTranslucent = true
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationController?.navigationBar.addSubview(visualEffectView)
-        navigationController?.navigationBar.sendSubviewToBack(visualEffectView)
         
         navigationController?.navigationBar.barStyle = .blackTranslucent
     }
@@ -108,31 +100,12 @@ final class ScannerViewController: UIViewController {
         super.viewDidLayoutSubviews()
         
         videoPreviewLayer.frame = view.layer.bounds
-        
-        let statusBarHeight = UIApplication.shared.statusBarFrame.size.height
-        let visualEffectRect = self.navigationController?.navigationBar.bounds.insetBy(dx: 0, dy: -(statusBarHeight)).offsetBy(dx: 0, dy: -statusBarHeight)
-        
-        visualEffectView.frame = visualEffectRect ?? CGRect.zero
-        
-        switch UIApplication.shared.statusBarOrientation {
-        case .landscapeLeft:
-            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
-        case .landscapeRight:
-            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
-        case .portrait:
-            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
-        case .portraitUpsideDown:
-            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
-        default:
-            break
-        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         UIApplication.shared.isIdleTimerDisabled = false
         
-        visualEffectView.removeFromSuperview()
         navigationController?.navigationBar.isTranslucent = false
         navigationController?.navigationBar.barStyle = originalBarStyle ?? .default
         captureSessionManager?.stop()
@@ -145,6 +118,7 @@ final class ScannerViewController: UIViewController {
     // MARK: - Setups
     
     private func setupViews() {
+        view.backgroundColor = .darkGray
         view.layer.addSublayer(videoPreviewLayer)
         quadView.translatesAutoresizingMaskIntoConstraints = false
         quadView.editable = false
@@ -329,23 +303,12 @@ extension ScannerViewController: RectangleDetectionDelegateProtocol {
             return
         }
         
-        let portraitImageSize = CGSize(width: imageSize.width, height: imageSize.height)
+        let portraitImageSize = CGSize(width: imageSize.height, height: imageSize.width)
         
         let scaleTransform = CGAffineTransform.scaleTransform(forSize: portraitImageSize, aspectFillInSize: quadView.bounds.size)
         let scaledImageSize = imageSize.applying(scaleTransform)
         
-        let rotationTransform: CGAffineTransform
-        
-        switch UIApplication.shared.statusBarOrientation {
-        case .portraitUpsideDown:
-            rotationTransform = CGAffineTransform(rotationAngle: -CGFloat.pi / 2.0)
-        case .landscapeRight:
-            rotationTransform = CGAffineTransform(rotationAngle: 0)
-        case .landscapeLeft:
-            rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi)
-        default:
-            rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi / 2.0)
-        }
+        let rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi / 2.0)
 
         let imageBounds = CGRect(origin: .zero, size: scaledImageSize).applying(rotationTransform)
 
