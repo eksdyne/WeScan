@@ -100,6 +100,19 @@ final class ScannerViewController: UIViewController {
         super.viewDidLayoutSubviews()
         
         videoPreviewLayer.frame = view.layer.bounds
+            
+        switch UIApplication.shared.statusBarOrientation {
+        case .landscapeLeft:
+            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeLeft
+        case .landscapeRight:
+            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+        case .portrait:
+            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portrait
+        case .portraitUpsideDown:
+            videoPreviewLayer.connection?.videoOrientation = AVCaptureVideoOrientation.portraitUpsideDown
+        default:
+            break
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -303,12 +316,23 @@ extension ScannerViewController: RectangleDetectionDelegateProtocol {
             return
         }
         
-        let portraitImageSize = CGSize(width: imageSize.height, height: imageSize.width)
         
+        let portraitImageSize = CGSize(width: imageSize.width, height: imageSize.height)
         let scaleTransform = CGAffineTransform.scaleTransform(forSize: portraitImageSize, aspectFillInSize: quadView.bounds.size)
         let scaledImageSize = imageSize.applying(scaleTransform)
         
-        let rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi / 2.0)
+        let rotationTransform: CGAffineTransform
+        
+        switch UIApplication.shared.statusBarOrientation {
+        case .portraitUpsideDown:
+            rotationTransform = CGAffineTransform(rotationAngle: -CGFloat.pi / 2.0)
+        case .landscapeRight:
+            rotationTransform = CGAffineTransform(rotationAngle: 0)
+        case .landscapeLeft:
+            rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi)
+        default:
+            rotationTransform = CGAffineTransform(rotationAngle: CGFloat.pi / 2.0)
+        }
 
         let imageBounds = CGRect(origin: .zero, size: scaledImageSize).applying(rotationTransform)
 
